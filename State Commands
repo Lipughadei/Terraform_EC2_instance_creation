@@ -1,0 +1,6 @@
+State Commands: Terraform provides several commands to manage the state file:
+
+terraform state list: Lists all resources in the state file.
+terraform state show <resource>: Displays detailed information about a specific resource.
+terraform state rm <resource>: Removes a resource from the state file without destroying it.
+terraform state mv <source> <destination>: Moves a resource from one address in the state file to another.
