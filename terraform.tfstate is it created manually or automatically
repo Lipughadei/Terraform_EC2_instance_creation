@@ -1,0 +1,2 @@
+The terraform.tfstate file is created automatically by Terraform when you run certain commands. Specifically,
+it is generated during the terraform apply process, which is when Terraform creates or updates infrastructure based on your configuration files.
