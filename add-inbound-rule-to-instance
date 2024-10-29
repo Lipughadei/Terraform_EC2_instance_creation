@@ -1,0 +1,40 @@
+provider "aws" {
+  region = "us-west-2" # Change to your desired region
+}
+
+# Create a security group for the instance
+resource "aws_security_group" "instance_sg" {
+  name        = "instance_sg"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow SSH from anywhere (not recommended for production)
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Create an EC2 instance
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0" # Replace with a valid AMI ID for your region
+  instance_type = "t2.micro"               # Change instance type as needed
+  key_name      = "your-key-pair-name"     # Replace with your existing key pair name
+
+  security_groups = [aws_security_group.instance_sg.name]
+
+  tags = {
+    Name = "ExampleInstance"
+  }
+}
+
+output "instance_public_ip" {
+  value = aws_instance.example.public_ip
+}
