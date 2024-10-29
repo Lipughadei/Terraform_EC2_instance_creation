@@ -30,3 +30,6 @@ output "private_key" {
   value     = tls_private_key.my_key.private_key_pem
   sensitive = true
 }
+
+# terraform output -json private_key | jq -r .value > key1.pem  (to capture the pem file)
+# terraform output -json private_key > key1.pem  (to capture the pem file)
