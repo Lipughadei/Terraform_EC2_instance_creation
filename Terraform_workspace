@@ -1,0 +1,61 @@
+terraform workspace list (to list all the workspaces in terraform)
+
+terraform workspace new <workspace_name> (to create new workspace in terraform)
+
+terraform workspace select <workspace_name> (to switch from one workspace to another workspace)
+
+terraform workspace delete <workspace_name> (to delete the workspace in terraform. you have to switch to another workspace in order to delete this workspace)
+
+terraform workspace show (this will show in which workspace you are currently)
+
+Example Workflow
+Here’s a simple example of how to use workspaces in Terraform:
+
+Initialize Terraform:
+
+bash
+
+terraform init
+Create a New Workspace for Development:
+
+bash
+
+terraform workspace new dev
+Switch to the Development Workspace:
+
+bash
+
+terraform workspace select dev
+Apply Configuration in Development:
+
+bash
+
+terraform apply
+Create a New Workspace for Production:
+
+bash
+
+terraform workspace new prod
+Switch to the Production Workspace:
+
+bash
+
+terraform workspace select prod
+Apply Configuration in Production:
+
+bash
+
+terraform apply
+Best Practices
+Use Descriptive Names: Name your workspaces descriptively to reflect their purpose (e.g., dev, staging, prod).
+
+Environment-Specific Variables: Use variable files or environment variables to manage different configurations for each workspace.
+
+Avoid Overuse: While workspaces are useful, avoid creating too many workspaces for minor variations. Consider whether separate configurations or modules might be more appropriate.
+
+State Management: Be aware that each workspace has its own state. If you need to share resources between environments, consider using modules or different Terraform projects.
+
+Conclusion
+Terraform workspaces provide a powerful way to manage multiple environments within a single Terraform configuration. By leveraging workspaces, 
+you can isolate changes, test configurations, and streamline your infrastructure management process. 
+Understanding how to effectively use workspaces is essential for maintaining a clean and organized Terraform setup.
