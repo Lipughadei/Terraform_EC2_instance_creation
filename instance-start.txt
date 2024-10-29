@@ -1,0 +1,23 @@
+provider "aws" {
+  region = "ap-south-1"
+  #access_key = "YOUR_ACCESS_KEY"  # Optional: Use IAM roles or environment variables for security
+  #secret_key = "YOUR_SECRET_KEY"
+}
+
+resource "aws_instance" "test" {
+  ami           = "ami-0e0e417dfa2028266" // you have to provide the actual AMI ID
+  instance_type = "t2.micro"
+#}
+#resource "aws_instance" "test" {
+#  ami           = data.aws_ami.aws.id
+#  instance_type = "t3.micro"
+
+  tags = {
+    Name = "HelloWorld"
+  }
+}
+
+resource "aws_ec2_instance_state" "test" {
+  instance_id = aws_instance.test.id
+  state       = "stopped"
+}
