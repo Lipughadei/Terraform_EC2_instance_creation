@@ -1,3 +1,6 @@
+https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli (amazon linux 2)
+
+
 # Terraform_EC2_instance_creation
 To create an AWS EC2 instance using Terraform, follow these steps:
 
