@@ -7,3 +7,14 @@
 │    7: resource "aws_instance" "example" {
 │
 │ There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.
+
+============================================================================================================================================
+BELOW CODE IS USED FOR TO SPECIFY THE VERSION OF THE PROVIDER
+-> terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
