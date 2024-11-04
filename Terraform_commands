@@ -1,1 +1,9 @@
 -> terraform refresh : this command will fetch the current state of the resource that hasbeen deployed and also it will update the state file
+-> terraform validate : this command will check your terraform file sysntax or code is correct or not
+-> if the syntax or code is correct then it will show this : Success! The configuration is valid.
+-> if any thing is wrong it will show this : Error: Unclosed configuration block
+│
+│   on main.tf line 7, in resource "aws_instance" "example":
+│    7: resource "aws_instance" "example" {
+│
+│ There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.
