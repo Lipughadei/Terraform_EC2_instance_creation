@@ -1,0 +1,11 @@
+Terminate the Specific Instance
+To terminate the instance you just created, you can use the terraform destroy command. However, if you want to target a specific instance, you can do so with the -target option:
+
+bash
+
+-> terraform destroy -target aws_instance.example
+Terraform will prompt you to confirm the destruction of the resource. Type yes to proceed.
+
+Resource Management: The terraform destroy command will only affect resources managed by the current Terraform configuration. It will not terminate resources outside of this configuration.
+AMI ID: Ensure that the AMI ID you use is valid for the region specified.
+Permissions: Make sure your AWS IAM user has the necessary permissions to create and terminate EC2 instances.
