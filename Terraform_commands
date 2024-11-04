@@ -9,7 +9,7 @@
 │ There is no closing brace for this block before the end of the file. This may be caused by incorrect brace nesting elsewhere in this file.
 
 ============================================================================================================================================
-BELOW CODE IS USED FOR TO SPECIFY THE VERSION OF THE PROVIDER
+BELOW CODE IS USED FOR TO SPECIFY THE VERSION OF THE PROVIDER. specifies the required providers for your Terraform project
 -> terraform {
   required_providers {
     aws = {
