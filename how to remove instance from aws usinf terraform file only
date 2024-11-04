@@ -1,0 +1,90 @@
+WE ARE CREATING INSTANCE WITH THE HELP OF THIS BELOW TERRAFORM CODE :
+provider "aws" {
+  region = "ap-south-1"
+  #access_key = "YOUR_ACCESS_KEY"  # Optional: Use IAM roles or environment variables for security
+  #secret_key = "YOUR_SECRET_KEY"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-0e0e417dfa2028266" // you have to provide the actual AMI ID
+  instance_type = "t2.micro"
+}
+========================================================================================================================================
+-> IF WE WANT TO REMOVE THE INSTANCE THEN WE NEED TO GET AMI ID, INSTANCE_TYPE AND THE NAME OF THE SERVER :
+IF WE WANT REMOVE THE INSTANCE THROUGH TERRAFORM FILE THEN WE NEED TO REMOVE SOME LINE FROM THE TERRAFOM FILE LIKE BELOW TERRAFORM CODE :
+provider "aws" {
+  region = "ap-south-1"
+  #access_key = "YOUR_ACCESS_KEY"  # Optional: Use IAM roles or environment variables for security
+  #secret_key = "YOUR_SECRET_KEY"
+}
+
+#resource "aws_instance" "example" {
+ # ami           = "ami-0e0e417dfa2028266" // you have to provide the actual AMI ID
+  #instance_type = "t2.micro"
+#       tags = {
+ #   Name = "ExampleInstance"
+  #}
+#}
+
+=======================================================================================================================================
+
+WE CAN REMOVE INSTANCE THROUGH OTHER WAY ALSO BELOW TERRAFORM CODE
+  
+# Specify the provider
+provider "aws" {
+  region = "us-east-1"  # Change to your desired region
+}
+
+# Create a security group
+resource "aws_security_group" "instance_sg" {
+  name        = "instance_sg"
+  description = "Allow SSH inbound traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Change this to restrict access
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Create an EC2 instance
+resource "aws_instance" "my_instance" {
+  ami           = "ami-0c55b159cbfafe01e"  # Change to a valid AMI ID in your region
+  instance_type = "t2.micro"               # Change to your desired instance type
+  key_name      = "your-key-pair-name"     # Change to your key pair name
+
+  security_groups = [aws_security_group.instance_sg.name]
+
+  tags = {
+    Name = "MyInstance"
+  }
+}
+
+# Output the instance ID
+output "instance_id" {
+  value = aws_instance.my_instance.id
+}
+
+AFTER THAT :
+terraform init
+
+AFTER THAT :
+terraform apply
+
+AFTER THAT :
+terraform state rm aws_instance.my_instance
+
+AFTER THAT :
+terraform destroy -target aws_instance.example
+
+WE CAN USE THESE WAY TO REMOVE INSTANCE 
+
+THERE ARE OTHER WAYS ALSO
