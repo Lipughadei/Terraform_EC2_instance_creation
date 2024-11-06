@@ -1,5 +1,7 @@
 https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli (amazon linux 2)
 
+# terraform output -json private_key | jq -r .value > key1.pem  (to capture the pem file)
+# terraform output -json private_key > key1.pem  (to capture the pem file)
 
 # Terraform_EC2_instance_creation
 To create an AWS EC2 instance using Terraform, follow these steps:
