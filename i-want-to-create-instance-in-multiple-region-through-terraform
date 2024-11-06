@@ -1,0 +1,24 @@
+#IF YOU WANT TO CREATE INSTANCE IN MULTIPLE REGION THEN YOU HAVE TO GET THE INSTANCE AMI ID OF THOSE REGION THEN
+ONLY YOU CAN CREATE INSTANCE IN MULTIPLE REGION.
+#YOU HAVE TO CREATE ALIAS(NICK NAME) THROUGH WHICH YOU CAN DIFFERENTIATE AND CALL THEM.
+
+provider "aws" {
+  region = "ap-south-1"
+  alias  = "mumbai"
+}
+
+provider "aws" {
+  region = "us-east-1"
+  alias  = "virginia"
+}
+resource "aws_instance" "mumbai_instance" {
+  provider = aws.mumbai
+  ami           = "ami-0e0e417dfa2028266"  # Replace with a valid AMI ID for Mumbai
+  instance_type = "t2.micro"
+}
+
+resource "aws_instance" "virginia_instance" {
+  provider = aws.virginia
+  ami           = "ami-0ddc798b3f1a5117e"  # Replace with a valid AMI ID for N. Virginia
+  instance_type = "t2.micro"
+}
