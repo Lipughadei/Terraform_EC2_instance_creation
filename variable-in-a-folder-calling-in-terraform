@@ -1,0 +1,24 @@
+vars.tf(FILE)
+
+
+variable "instance" {
+     type = stringmain.tf
+provider "aws"{
+   region = "ap-south-1"
+}
+
+====================================================================================
+main.tf(FILE)
+
+
+resource "aws_instance" "instance-one"{
+   ami = "ami-0e0e417dfa2028266"
+   instance_type = var.instance //WHAT EVER YOUR FILE NAME IT SHOULD WRITE IN LIKE THIS
+
+   tags = {
+     Name = "instance-two"
+   }
+}
+     default = "t2.micro"
+}
+
