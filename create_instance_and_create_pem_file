@@ -31,5 +31,12 @@ output "private_key" {
   sensitive = true
 }
 
+==========================================================================================================
+# DON'T USE THESE COMMANDS IT WILL CAPTURE THE PEM FILE BUT IN THAT PEM FILE IT HAD SO MANY \n AND " .
 # terraform output -json private_key | jq -r .value > key1.pem  (to capture the pem file)
 # terraform output -json private_key > key1.pem  (to capture the pem file)
+
+===========================================================================================================
+# USE THESE COMMANDS IT WILL CAPYURE THE PEM FILE AND IT HAS CLEAN PEM FILE WITHOUT HAVING ANY \n AND " .
+#terraform output -raw private_key > key1.pem
+#THEN YOU HAVE TO CHANGE THE PERMISSION OF THE PEM FILE TO 400
