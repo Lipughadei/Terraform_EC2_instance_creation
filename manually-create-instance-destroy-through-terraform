@@ -1,0 +1,2 @@
+-> terraform import aws_instance.my_instance <instance_id>  (you should get the instance id of that instance)
+-> terraform destroy
