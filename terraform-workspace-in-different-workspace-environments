@@ -1,0 +1,32 @@
+#THROUGH THIS YOU HAVE NO LONGER NEEDED TO GO TO THAT WORKSPACE TO MAKE AN INSTANCE FOR THAT ENVIRONMENT/WORKSPACE. YOU CAN ACHIEVE THAT IN ANY ENVIRONMENT/WORKSPACE
+
+
+variable "instance_types" {
+  description = "Map of instance types for different environments"
+  type        = map(string)
+  default = {
+    dev     = "t2.micro"
+    pre-prod = "t2.small"
+    prod    = "t2.medium"
+    delusion = "t2.nano"
+  }
+}
+
+variable "environment" {
+ description = "The environment to deploy"
+ type        = string
+  #default     = "dev"  # Change this to "staging" or "prod" to test other environments
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-03753afda9b8ba740"  # Replace with a valid AMI ID for your region
+  instance_type = lookup(var.instance_types, var.environment, "t2.micro")  # Default to "t2.micro"
+
+  tags = {
+    Name = "${var.environment}-example-instance"
+  }
+}
+
+output "instance_type" {
+  value = aws_instance.example.instance_type
+}
