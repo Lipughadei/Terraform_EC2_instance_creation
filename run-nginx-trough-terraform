@@ -1,0 +1,56 @@
+provider "aws" {
+   region = "ap-south-1"
+}
+
+resource "aws_security_group" "my_sg" { # Changed name to my_sg
+    name = "my-sg"
+
+    ingress {
+      from_port = 22
+      to_port = 22
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+      from_port = 80
+      to_port = 80
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+      from_port = 443
+      to_port = 443
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+      from_port = 0
+      to_port = 0
+      protocol = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+}
+
+resource "aws_instance" "instance1" {
+   ami = "ami-03753afda9b8ba740"
+   instance_type = "t2.micro"
+
+   key_name = "ansible1"
+   vpc_security_group_ids = [aws_security_group.my_sg.id] # Updated to my_sg
+   user_data = <<-EOF
+                  #!/bin/bash
+                  sudo amazon-linux-extras install -y nginx1
+                  sudo systemctl start nginx
+                  sudo systemctl enable nginx
+                  EOF
+   tags = {
+     Name = "instance"
+   }
+}
+
+output "instance_ip" {
+   value = aws_instance.instance1.public_ip
+}
