@@ -1,0 +1,86 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+
+  required_version = ">= 0.12"
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias  = "west"
+  region = "us-west-2"
+}
+
+variable "instance_count" {
+  description = "Number of EC2 instances to create"
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.instance_count > 0
+    error_message = "Must be greater than 0"
+  }
+}
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "main-vpc"
+  }
+}
+
+resource "aws_subnet" "subnet_a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "subnet-a"
+  }
+}
+
+resource "aws_security_group" "web_sg" {
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "web-sg"
+  }
+}
+
+resource "aws_instance" "web" {
+  count         = var.instance_count
+  ami           = "ami-0c55b159cbfafe1f0" # Example AMI
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.subnet_a.id
+  security_groups = [aws_security_group.web_sg.name]
+
+  tags = {
+    Name = "web-instance-${count.index + 1}"
+  }
+}
+
+output "instance_ips" {
+  value = aws_instance.web[*].public_ip
+}
