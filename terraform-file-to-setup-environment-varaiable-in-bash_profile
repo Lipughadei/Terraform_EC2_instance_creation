@@ -1,0 +1,64 @@
+provider "aws" {
+  region = "ap-south-1"  # Change to your desired region
+}
+
+resource "aws_instance" "java_app_instance" {
+  ami           = "ami-03753afda9b8ba740"  # Amazon Linux 2 AMI (change as needed)
+  instance_type = "t2.micro"  # Free tier eligible
+
+  key_name = "ansible1"  # Replace with your key pair name
+
+  # User data to install Java, Git, and clone the repository
+  #user_data = <<-EOF
+  #            #!/bin/bash
+   #           yum update -y
+    #          yum install -y java-1.8.0-openjdk git
+     #         git clone https://github.com/Lipughadei/LoginWebApp.git
+      #        cd your-repo
+       #       mvn clean install  # Assuming you are using Maven
+        #      java -jar target/LoginWebApp.war  # Adjust the path to your JAR file
+         #     EOF
+#   user_data = <<-EOF
+#              #!/bin/bash
+ #             # Update the package repository
+  #            yum update -y
+#
+ #             # Install Java (OpenJDK)
+  #            yum install -y java-1.8.0-openjdk
+#
+ #             # Install Maven
+  #            sudo yum install -y apache-maven
+#
+ #             # Set JAVA_HOME and MAVEN_HOME in .bash_profile
+  #            echo "export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk" >> /home/ec2-user/.bash_profile
+   #           echo "export MAVEN_HOME=/usr/share/maven" >> /home/ec2-user/.bash_profile
+    #          echo "export PATH=\$PATH:\$JAVA_HOME/bin:\$MAVEN_HOME/bin" >> /home/ec2-user/.bash_profile
+#
+ #             # Ensure the .bash_profile is owned by ec2-user
+  #            chown ec2-user:ec2-user /home/ec2-user/.bash_profile
+   #           source ~/.bash_profile
+              EOF
+  user_data = <<-EOF
+              #!/bin/bash
+              yum install git -y
+              git clone https://github.com/Lipughadei/LoginWebApp.git .
+              yum update -y
+              yum install -y java-1.8.0-openjdk-devel maven
+              echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk' >> /home/ec2-user/.bash_profile
+              echo 'export MAVEN_HOME=/usr/share/maven' >> /home/ec2-user/.bash_profile
+              echo 'export PATH=$PATH:$JAVA_HOME/bin:$MAVEN_HOME/bin' >> /home/ec2-user/.bash_profile
+              source /home/ec2-user/.bash_profile
+              EOF
+
+  tags = {
+    Name = "JavaAppInstance"
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.java_maven_instance.id
+}
+
+output "instance_public_ip" {
+  value = aws_instance.java_app_instance.public_ip
+}
