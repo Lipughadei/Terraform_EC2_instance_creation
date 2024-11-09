@@ -1,0 +1,56 @@
+provider "aws" {
+  region = "ap-south-1"  # Change to your desired region
+}
+
+resource "aws_instance" "java_app_instance" {
+  ami           = "ami-03753afda9b8ba740"  # Amazon Linux 2 AMI (change as needed)
+  instance_type = "t2.micro"  # Free tier eligible
+
+  key_name = "ansible1"  # Replace with your key pair name
+
+  # User data to install Java, Git, and clone the repository
+   user_data = <<-EOF
+              #!/bin/bash
+              exec > /var/log/user-data.log 2>&1  # Redirect output to a log file
+              set -x  # Enable debugging
+
+              # Update the package repository
+              yum update -y
+
+              # Install Git
+              yum install git -y
+
+              # Switch to ec2-user and clone the repository
+              if ! su - ec2-user -c "git clone https://github.com/Lipughadei/LoginWebApp.git /home/ec2-user/LoginWebApp"; then
+                  echo "Git clone failed" >> /var/log/user-data.log
+                  exit 1
+              fi
+
+              # Install Java and Maven
+              yum install -y java-1.8.0-openjdk-devel maven
+
+              # Set environment variables
+              echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk' >> /home/ec2-user/.bash_profile
+              echo 'export MAVEN_HOME=/usr/share/maven' >> /home/ec2-user/.bash_profile
+              echo 'export PATH=$PATH:$JAVA_HOME/bin:$MAVEN_HOME/bin' >> /home/ec2-user/.bash_profile
+              source /home/ec2-user/.bash_profile
+
+              # Change directory to the cloned repo and run Maven
+              cd /home/ec2-user/LoginWebApp
+              if ! mvn clean package; then
+                  echo "Maven build failed" >> /var/log/user-data.log
+                  exit 1
+              fi
+              EOF
+  tags = {
+    Name = "JavaAppInstance"
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.java_app_instance.id  # Corrected reference
+}
+
+output "instance_public_ip" {
+  value = aws_instance.java_app_instance.public_ip
+}
