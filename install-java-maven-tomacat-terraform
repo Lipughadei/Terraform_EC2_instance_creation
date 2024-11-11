@@ -1,0 +1,128 @@
+provider "aws" {
+  region = "ap-south-1"  # Change to your desired region
+}
+
+resource "aws_instance" "java_app_instance" {
+  ami           = "ami-03753afda9b8ba740"  # Amazon Linux 2 AMI (change as needed)
+  instance_type = "t2.micro"  # Free tier eligible
+
+  key_name = "ansible1"  # Replace with your key pair name
+
+  # User data to install Java, Git, and clone the repository
+  user_data = <<-EOF
+              #!/bin/bash
+              exec > /var/log/user-data.log 2>&1  # Redirect output to a log file
+              set -x  # Enable debugging
+
+              # Update the package repository
+              yum update -y
+
+              # Install Git
+              yum install git -y
+
+              # Switch to ec2-user and clone the repository
+              if ! su - ec2-user -c "git clone https://github.com/Lipughadei/LoginWebApp.git /home/ec2-user/LoginWebApp"; then
+                  echo "Git clone failed" >> /var/log/user-data.log
+                  exit 1
+              fi
+
+              # Install Java, Maven, and wget
+              yum install -y java-1.8.0-openjdk-devel maven wget
+
+              # Set environment variables
+              echo 'export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk' >> /home/ec2-user/.bash_profile
+              echo 'export MAVEN_HOME=/usr/share/maven' >> /home/ec2-user/.bash_profile
+              echo 'export CATALINA_HOME=/opt/tomcat' >> /home/ec2-user/.bash_profile
+              echo 'export PATH=$PATH:$JAVA_HOME/bin:$MAVEN_HOME/bin:$CATALINA_HOME/bin' >> /home/ec2-user/.bash_profile
+              source /home/ec2-user/.bash_profile
+
+              # Change directory to the cloned repo and run Maven
+              cd /home/ec2-user/LoginWebApp
+              if ! mvn clean package; then
+                  echo "Maven build failed" >> /var/log/user-data.log
+                  exit 1
+              fi
+
+              # Install Tomcat
+#              cd /opt
+#              wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.96/bin/apache-tomcat-9.0.96.tar.gz
+ #             tar -xvzf apache-tomcat-9.0.96.tar.gz
+  #            mv apache-tomcat-9.0.96 tomcat
+   #           mv tomcat /opt
+    #          chmod +x /opt/tomcat/bin/*.sh
+
+#              # Start Tomcat
+ #             /opt/tomcat/bin/startup.sh
+
+              yum install -y wget
+              wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.97/bin/apache-tomcat-9.0.97.tar.gz
+              tar xzf apache-tomcat-9.0.97.tar.gz
+              mv apache-tomcat-9.0.97 tomcat
+              mv tomcat /opt
+              # Deploy the WAR file
+              mv /home/ec2-user/LoginWebApp.war /opt/tomcat/webapps/
+              # Start Tomcat
+              chown -R ec2-user:ec2-user /opt/tomcat
+              chmod +x /opt/tomcat/bin/startup.sh
+              /opt/tomcat/bin/startup.sh
+
+              # Deploy the .war file
+              cp /home/ec2-user/LoginWebApp/target/LoginWebApp.war /opt/tomcat/webapps/
+
+              # Ensure Tomcat starts on boot (optional)
+              echo "[Unit]
+              Description=Apache Tomcat Web Application Container
+
+              [Service]
+              Type=simple
+              User=ec2-user
+              Group=ec2-user
+              Environment=JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
+              Environment=CATALINA_HOME=/opt/tomcat
+              ExecStart=/opt/tomcat/bin/startup.sh
+              ExecStop=/opt/tomcat/bin/shutdown.sh
+
+              [Install]
+              WantedBy=multi-user.target" > /etc/systemd/system/tomcat.service
+
+              # Enable and start Tomcat service
+              systemctl enable tomcat
+              systemctl start tomcat
+              EOF
+  tags = {
+    Name = "JavaAppInstance"
+  }
+}
+resource "aws_security_group" "tomcat_sg" {
+  name        = "tomcat_security_group"
+  description = "Allow HTTP traffic"
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Change to restrict access
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Change to restrict SSH access
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+output "instance_id" {
+  value = aws_instance.java_app_instance.id  # Corrected reference
+}
+
+output "instance_public_ip" {
+  value = aws_instance.java_app_instance.public_ip
+}
