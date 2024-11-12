@@ -1,0 +1,63 @@
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_instance" "ansible_instance" {
+  ami           = "ami-03753afda9b8ba740" # Replace with your desired AMI
+  instance_type = "t2.micro"
+  key_name      = "ansible1" # Replace with your key pair name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              # Install necessary packages
+              yum update -y
+#              yum install -y python3 python3-pip
+ #             pip3 install ansible
+              sudo amazon-linux-extras install ansible2 -y
+
+              # Create Ansible inventory
+              echo "[tomcat_servers]" > /etc/ansible/hosts
+
+              # Create Ansible playbook
+              cat <<EOL > /tmp/deploy_tomcat.yml
+              ---
+              - hosts: tomcat_servers
+                become: yes
+                tasks:
+                  - name: Install Java
+                    yum:
+                      name: java-1.8.0-openjdk
+                      state: present
+
+                  - name: Download Tomcat
+                    get_url:
+                      url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.97/bin/apache-tomcat-9.0.97.tar.gz
+                      dest: /tmp/apache-tomcat.tar.gz
+
+                  - name: Extract Tomcat
+                    unarchive:
+                      src: /tmp/apache-tomcat.tar.gz
+                      dest: /opt/
+                      remote_src: yes
+
+                  - name: Start Tomcat
+                    command: /opt/apache-tomcat-9.0.97/bin/startup.sh
+
+                  - name: Deploy .war file
+                    copy:
+                      src: /opt/tomcat/target/*.war
+                      dest: /opt/apache-tomcat-9.0.97/webapps/*.war
+              EOL
+
+              # Run the Ansible playbook
+              ansible-playbook /tmp/deploy_tomcat.yml
+              EOF
+
+  tags = {
+    Name = "AnsibleInstance"
+  }
+}
+
+output "ansible_instance_ip" {
+  value = aws_instance.ansible_instance.public_ip
+}
