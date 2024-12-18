@@ -1,0 +1,133 @@
+provider "aws" {
+  region = "ap-south-1"  # Change to your desired region
+}
+
+# Create a VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "my-vpc"
+  }
+}
+
+# Create a subnet
+resource "aws_subnet" "main" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-west-2a"  # Change to your desired AZ
+}
+
+# Create a security group
+resource "aws_security_group" "web_sg" {
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "web_sg"
+  }
+}
+
+# Create a Launch Template
+resource "aws_launch_template" "web_app" {
+  name_prefix   = "web-app-"
+  image_id      = "ami-0327f51db613d7bd2"  # Change to your desired AMI ID
+  instance_type = "t2.micro"
+
+  key_name = "your-key-pair"  # Change to your key pair name
+
+  network_interfaces {
+    associate_public_ip_address = true
+    subnet_id                   = aws_subnet.main.id
+    security_groups             = [aws_security_group.web_sg.id]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Create an Auto Scaling Group
+resource "aws_autoscaling_group" "web_app_asg" {
+  desired_capacity     = 2
+  max_size             = 5
+  min_size             = 1
+  vpc_zone_identifier = [aws_subnet.main.id]
+  launch_template {
+    id      = aws_launch_template.web_app.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "web-app-instance"
+    propagate_at_launch = true
+  }
+}
+
+# Create a scaling policy
+resource "aws_autoscaling_policy" "scale_out" {
+  name                   = "scale-out"
+  scaling_adjustment      = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.web_app_asg.name
+}
+
+resource "aws_autoscaling_policy" "scale_in" {
+  name                   = "scale-in"
+  scaling_adjustment      = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.web_app_asg.name
+}
+
+# Optionally, you can create CloudWatch alarms to trigger scaling policies
+# Create a CloudWatch alarm for high CPU usage
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "high_cpu"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name        = "CPUUtilization"
+  namespace          = "AWS/EC2"
+  period             = "60"
+  statistic          = "Average"
+  threshold          = "70"
+  alarm_description  = "This metric monitors EC2 CPU utilization"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_app_asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_out.arn]  # Corrected here
+}
+
+# Create a CloudWatch alarm for low CPU usage
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "low_cpu"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "1"
+  metric_name        = "CPUUtilization"
+  namespace          = "AWS/EC2"
+  period             = "60"
+  statistic          = "Average"
+  threshold          = "30"
+  alarm_description  = "This metric monitors EC2 CPU utilization"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.web_app_asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_in.arn]  # Corrected here
+}
